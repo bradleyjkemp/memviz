@@ -26,5 +26,5 @@
   name = "github.com/bradleyjkemp/cupaloy"
 
 [[constraint]]
-  name = "github.com/davecgh/go-spew/spew"
+  name = "github.com/davecgh/go-spew"
   version = "1.1.0"
