@@ -20,6 +20,7 @@ var spewer = &spew.ConfigState{
 	MaxDepth:                1,
 }
 
+// Map prints out a Graphviz digraph of the given datastructure to the given io.Writer
 func Map(w io.Writer, i interface{}) {
 	iVal := reflect.ValueOf(i)
 	fmt.Fprintln(w, "digraph {")

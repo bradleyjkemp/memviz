@@ -1,0 +1,23 @@
+language: go
+
+go:
+  - 1.8.x
+  - 1.x
+  - master
+
+matrix:
+  allow_failures:
+    - go: master
+
+install:
+  - make install
+
+script:
+  - make test-ci
+
+notifications:
+  email: false
+
+env:
+  global:
+    - MAKEFLAGS=" -j 2"
