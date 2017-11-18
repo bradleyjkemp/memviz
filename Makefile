@@ -18,6 +18,9 @@ test:
 	$(GOPATH)/bin/gometalinter --vendor --fast ./...
 
 .PHONY: test-ci
-test-ci:
+test-ci: lint-ci
 	$(GOPATH)/bin/goveralls -v -service=travis-ci
-	$(GOPATH)/bin/gometalinter --vendor ./...
+
+.PHONY: lint-ci
+lint-ci:
+	$(GOPATH)/bin/gometalinter --vendor --disable=gotype ./...
