@@ -5,7 +5,10 @@ import (
 	"strings"
 	"testing"
 
+	"fmt"
+
 	"github.com/bradleyjkemp/cupaloy"
+	"github.com/stretchr/testify/assert"
 )
 
 type btree struct {
@@ -33,6 +36,50 @@ func TestTree(t *testing.T) {
 
 	b := &bytes.Buffer{}
 	Map(b, root)
+	fmt.Println(b.String())
+	require.NoError(t, cupaloy.Snapshot(strings.Split(b.String(), "\n")))
+}
 
-	cupaloy.Snapshot(strings.Split(b.String(), "\n"))
+type fib struct {
+	index    int
+	prev     *fib
+	prevprev *fib
+}
+
+func TestFib(t *testing.T) {
+	f0 := &fib{
+		0,
+		nil,
+		nil,
+	}
+	f1 := &fib{
+		1,
+		f0,
+		nil,
+	}
+	f2 := &fib{
+		2,
+		f1,
+		f0,
+	}
+	f3 := &fib{
+		3,
+		f2,
+		f1,
+	}
+	f4 := &fib{
+		4,
+		f3,
+		f2,
+	}
+	f5 := &fib{
+		5,
+		f4,
+		f3,
+	}
+
+	b := &bytes.Buffer{}
+	Map(b, f5)
+	fmt.Println(b.String())
+	require.NoError(t, cupaloy.Snapshot(strings.Split(b.String(), "\n")))
 }
