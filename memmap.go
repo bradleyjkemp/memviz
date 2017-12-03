@@ -60,7 +60,7 @@ func imap(w io.Writer, iVal reflect.Value, nodeIds map[uintptr]int) (uintptr, ma
 				links = append(links, fmt.Sprintf("  %d:f%d -> %d:name;\n", nodeIds[iValAddr], index, nodeIds[ptr]))
 			}
 		} else {
-			fields = append(fields, fmt.Sprintf("%s: %s", uType.Field(index).Name, field.Interface()))
+			fields = append(fields, fmt.Sprintf("%s: %s", uType.Field(index).Name, fmt.Sprint(field.Interface())))
 		}
 	}
 

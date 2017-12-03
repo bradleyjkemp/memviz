@@ -2,13 +2,11 @@ package memmap
 
 import (
 	"bytes"
+	"fmt"
 	"strings"
 	"testing"
 
-	"fmt"
-
 	"github.com/bradleyjkemp/cupaloy"
-	"github.com/stretchr/testify/assert"
 )
 
 type btree struct {
@@ -37,7 +35,7 @@ func TestTree(t *testing.T) {
 	b := &bytes.Buffer{}
 	Map(b, root)
 	fmt.Println(b.String())
-	require.NoError(t, cupaloy.Snapshot(strings.Split(b.String(), "\n")))
+	cupaloy.SnapshotT(t, strings.Split(b.String(), "\n"))
 }
 
 type fib struct {
@@ -81,5 +79,5 @@ func TestFib(t *testing.T) {
 	b := &bytes.Buffer{}
 	Map(b, f5)
 	fmt.Println(b.String())
-	require.NoError(t, cupaloy.Snapshot(strings.Split(b.String(), "\n")))
+	cupaloy.SnapshotT(t, strings.Split(b.String(), "\n"))
 }

@@ -22,8 +22,8 @@
 
 
 [[constraint]]
-  branch = "master"
   name = "github.com/bradleyjkemp/cupaloy"
+  version = "1.0.0"
 
 [[constraint]]
   name = "github.com/davecgh/go-spew"
