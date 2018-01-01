@@ -4,8 +4,8 @@
 [[projects]]
   name = "github.com/bradleyjkemp/cupaloy"
   packages = ["."]
-  revision = "5847e1e3b68235a8f76b8028956f9de0895ae0d2"
-  version = "v1.1.0"
+  revision = "c9f1635bda5049b93b791588013ad7a65f38b170"
+  version = "v1.2.0"
 
 [[projects]]
   name = "github.com/davecgh/go-spew"

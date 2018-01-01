@@ -2,10 +2,9 @@ package memmap
 
 import (
 	"fmt"
+	"io"
 	"reflect"
 	"unsafe"
-
-	"io"
 )
 
 //var spewer = &spew.ConfigState{
