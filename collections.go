@@ -67,7 +67,7 @@ func (m *mapper) mapSlice(sliceVal reflect.Value, parentID nodeID, inlineable bo
 
 func (m *mapper) mapMap(mapVal reflect.Value, parentID nodeID, inlineable bool) (nodeID, string) {
 	// create a string type while escaping graphviz special characters
-	mapType := fmt.Sprint(mapVal.Type().String())
+	mapType := mapVal.Type().String()
 	mapType = strings.Replace(mapType, "[", "\\[", -1)
 	mapType = strings.Replace(mapType, "]", "\\]", -1)
 
