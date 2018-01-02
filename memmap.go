@@ -21,9 +21,10 @@ type nodeID int
 var nilKey nodeKey = "nil0"
 
 type mapper struct {
-	writer        io.Writer
-	nodeIds       map[nodeKey]nodeID
-	nodeSummaries map[nodeKey]string
+	writer              io.Writer
+	nodeIDs             map[nodeKey]nodeID
+	nodeSummaries       map[nodeKey]string
+	inlineableItemLimit int
 }
 
 // Map prints out a Graphviz digraph of the given datastructure to the given io.Writer
@@ -38,9 +39,16 @@ func Map(w io.Writer, i interface{}) {
 		iVal = iVal.Elem()
 	}
 
+	m := &mapper{
+		w,
+		map[nodeKey]nodeID{nilKey: 0},
+		map[nodeKey]string{nilKey: "nil"},
+		2,
+	}
+
 	fmt.Fprintln(w, "digraph structs {")
 	fmt.Fprintln(w, "  node [shape=Mrecord];")
-	(&mapper{w, map[nodeKey]nodeID{nilKey: 0}, map[nodeKey]string{nilKey: "nil"}}).mapValue(iVal, false)
+	m.mapValue(iVal, 0, false)
 	fmt.Fprintln(w, "}")
 }
 
@@ -49,11 +57,12 @@ var keyCounter int
 
 func getNodeKey(val reflect.Value) nodeKey {
 	if val.CanAddr() {
-		return nodeKey(fmt.Sprint(val.Kind(), val.UnsafeAddr()))
+		return nodeKey(fmt.Sprint(val.Kind()) + fmt.Sprint(val.UnsafeAddr()))
 	}
 
-	// reverse order of type and "address" to prevent collisions
-	return nodeKey(fmt.Sprint(keyCounter, val.Kind()))
+	// reverse order of type and "address" to prevent (incredibly unlikely) collisions
+	keyCounter++
+	return nodeKey(fmt.Sprint(keyCounter) + fmt.Sprint(val.Kind()))
 }
 
 func (m *mapper) getNodeID(iVal reflect.Value) nodeID {
@@ -61,9 +70,9 @@ func (m *mapper) getNodeID(iVal reflect.Value) nodeID {
 	key := getNodeKey(iVal)
 	var id nodeID
 	var ok bool
-	if id, ok = m.nodeIds[key]; !ok {
-		id = nodeID(len(m.nodeIds))
-		m.nodeIds[key] = id
+	if id, ok = m.nodeIDs[key]; !ok {
+		id = nodeID(len(m.nodeIDs))
+		m.nodeIDs[key] = id
 		return id
 	}
 
@@ -76,16 +85,16 @@ func (m *mapper) newBasicNode(iVal reflect.Value, text string) nodeID {
 	return id
 }
 
-func (m *mapper) mapValue(iVal reflect.Value, inlineable bool) (nodeID, string) {
+func (m *mapper) mapValue(iVal reflect.Value, parentID nodeID, inlineable bool) (nodeID, string) {
 	if !iVal.IsValid() {
 		// zero value => probably result of nil pointer
-		return m.nodeIds[nilKey], m.nodeSummaries[nilKey]
+		return m.nodeIDs[nilKey], m.nodeSummaries[nilKey]
 	}
 
 	key := getNodeKey(iVal)
-	if id, ok := m.nodeIds[key]; ok {
+	if summary, ok := m.nodeSummaries[key]; ok {
 		// already seen this address so no need to map again
-		return id, m.nodeSummaries[key]
+		return m.nodeIDs[key], summary
 	}
 
 	switch iVal.Kind() {
@@ -98,9 +107,9 @@ func (m *mapper) mapValue(iVal reflect.Value, inlineable bool) (nodeID, string) 
 	case reflect.Struct:
 		return m.mapStruct(iVal)
 	case reflect.Slice, reflect.Array:
-		return m.mapSlice(iVal)
+		return m.mapSlice(iVal, parentID, inlineable)
 	case reflect.Map:
-		return m.mapMap(iVal)
+		return m.mapMap(iVal, parentID, inlineable)
 
 	// Simple types
 	case reflect.Bool:
@@ -120,7 +129,9 @@ func (m *mapper) mapValue(iVal reflect.Value, inlineable bool) (nodeID, string) 
 
 func (m *mapper) mapPtr(iVal reflect.Value, inlineable bool) (nodeID, string) {
 	pointee := iVal.Elem()
-	pointeeNode, summary := m.mapValue(pointee, false)
+
+	// inlineable=false so an invalid parentID is fine
+	pointeeNode, summary := m.mapValue(pointee, 0, false)
 
 	if !inlineable {
 		id := m.newBasicNode(iVal, "*"+summary)
