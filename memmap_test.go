@@ -106,37 +106,37 @@ func TestFib(t *testing.T) {
 	cupaloy.SnapshotT(t, b)
 }
 
-//type structMap struct {
-//	id    string
-//	links map[*structMap]bool
-//}
-//
-//func TestMap(t *testing.T) {
-//	leaf := &structMap{
-//		"leaf",
-//		nil,
-//	}
-//
-//	leaf2 := &structMap{
-//		"leaf2",
-//		nil,
-//	}
-//
-//	parent := &structMap{
-//		"parent",
-//		map[*structMap]bool{
-//			leaf:  true,
-//			leaf2: true,
-//		},
-//	}
-//
-//	leaf.links = map[*structMap]bool{parent: true}
-//
-//	b := &bytes.Buffer{}
-//	Map(b, parent)
-//	fmt.Println(b.String())
-//	cupaloy.SnapshotT(t, b)
-//}
+type structMap struct {
+	id    string
+	links map[*structMap]bool
+}
+
+func TestMap(t *testing.T) {
+	leaf := &structMap{
+		"leaf",
+		nil,
+	}
+
+	leaf2 := &structMap{
+		"leaf2",
+		nil,
+	}
+
+	parent := &structMap{
+		"parent",
+		map[*structMap]bool{
+			leaf:  true,
+			leaf2: true,
+		},
+	}
+
+	leaf.links = map[*structMap]bool{parent: true}
+
+	b := &bytes.Buffer{}
+	Map(b, parent)
+	fmt.Println(b.String())
+	cupaloy.SnapshotT(t, b)
+}
 
 func TestPointerChain(t *testing.T) {
 	str := "Hello world"
