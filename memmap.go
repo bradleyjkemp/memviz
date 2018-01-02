@@ -17,28 +17,38 @@ import (
 //	MaxDepth:                1,
 //}
 
+type nodeKey string
+type nodeId int
+
+var nilKey nodeKey = "nil0"
+
 type mapper struct {
 	writer        io.Writer
-	nodeIds       map[uintptr]nodeId
-	nodeSummaries map[uintptr]string
+	nodeIds       map[nodeKey]nodeId
+	nodeSummaries map[nodeKey]string
 }
 
-func (m *mapper) getNodeId(addr uintptr) nodeId {
+func (m *mapper) getNodeId(iVal reflect.Value) nodeId {
+	// have to key on kind and address because a struct and its first element have the same UnsafeAddr()
+	key := getNodeKey(iVal)
 	var id nodeId
 	var ok bool
-	if id, ok = m.nodeIds[addr]; !ok {
+	if id, ok = m.nodeIds[key]; !ok {
 		id = nodeId(len(m.nodeIds))
-		m.nodeIds[addr] = id
+		m.nodeIds[key] = id
 		return id
 	}
 
 	return id
 }
 
-func (m *mapper) newBasicNode(addr uintptr, text string) nodeId {
-	id := m.getNodeId(addr)
-	m.nodeIds[addr] = id
-	fmt.Fprintf(m.writer, "  %d [label=\"<name> %s\"];\n", m.nodeIds[addr], text)
+func getNodeKey(val reflect.Value) nodeKey {
+	return nodeKey(fmt.Sprint(val.Kind(), val.UnsafeAddr()))
+}
+
+func (m *mapper) newBasicNode(iVal reflect.Value, text string) nodeId {
+	id := m.getNodeId(iVal)
+	fmt.Fprintf(m.writer, "  %d [label=\"<name> %s\"];\n", id, text)
 	return id
 }
 
@@ -56,94 +66,102 @@ func Map(w io.Writer, i interface{}) {
 
 	fmt.Fprintln(w, "digraph structs {")
 	fmt.Fprintln(w, "  node [shape=Mrecord];")
-	(&mapper{w, map[uintptr]nodeId{0: 0}, map[uintptr]string{0: "nil"}}).mapValue(iVal, false)
+	(&mapper{w, map[nodeKey]nodeId{nilKey: 0}, map[nodeKey]string{nilKey: "nil"}}).mapValue(iVal, false)
 	fmt.Fprintln(w, "}")
 }
-
-type nodeId int
 
 func (m *mapper) mapValue(iVal reflect.Value, inlineable bool) (nodeId, string) {
 	if !iVal.IsValid() {
 		// zero value => probably result of nil pointer
-		return m.nodeIds[0], m.nodeSummaries[0]
+		return m.nodeIds[nilKey], m.nodeSummaries[nilKey]
 	}
 
-	iValAddr := iVal.UnsafeAddr()
-	if _, ok := m.nodeIds[iValAddr]; ok {
+	key := getNodeKey(iVal)
+	if id, ok := m.nodeIds[key]; ok {
 		// already seen this address so no need to map again
-		return m.nodeIds[iValAddr], m.nodeSummaries[iValAddr]
+		return id, m.nodeSummaries[key]
 	}
 
 	switch iVal.Kind() {
 	case reflect.Ptr:
 		childId, summary := m.mapPtr(iVal, inlineable)
-		m.nodeSummaries[iValAddr] = summary
+		m.nodeSummaries[key] = summary
 		return childId, summary
 
 	// Collections
 	case reflect.Struct:
 		childId, summary := m.mapStruct(iVal)
-		m.nodeSummaries[iValAddr] = summary
+		m.nodeSummaries[key] = summary
 		return childId, summary
 
 	case reflect.Slice:
 		fallthrough
 	case reflect.Array:
 		childId, summary := m.mapSlice(iVal)
-		m.nodeSummaries[iValAddr] = summary
+		m.nodeSummaries[key] = summary
 		return childId, summary
 
 	// Simple types
 	case reflect.String:
-		m.nodeSummaries[iValAddr] = "string"
-		return m.newBasicNode(iValAddr, "\\\""+iVal.String()+"\\\""), "string"
-	case reflect.Int:
-		m.nodeSummaries[iValAddr] = "int"
-		return m.newBasicNode(iValAddr, strconv.Itoa(int(iVal.Int()))), "string"
+		quoted := fmt.Sprintf("\\\"%s\\\"", iVal.String())
+		if inlineable {
+			return 0, quoted
+		}
+		m.nodeSummaries[key] = "string"
+		return m.newBasicNode(iVal, quoted), "string"
+
+	// Numbers
+	case reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64,
+		reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64,
+		reflect.Uint, reflect.Int:
+		printed := strconv.Itoa(int(iVal.Int()))
+		if inlineable {
+			return 0, printed
+		}
+		m.nodeSummaries[key] = "int"
+		return m.newBasicNode(iVal, printed), "int"
+
+	// If we've missed anything then just fmt.Sprint it
 	default:
-		fmt.Println(iVal.Kind())
-		return m.newBasicNode(iValAddr, fmt.Sprint(iVal.Interface())), iVal.Kind().String()
+		return m.newBasicNode(iVal, fmt.Sprint(iVal.Interface())), iVal.Kind().String()
 	}
 }
 
 func (m *mapper) mapPtr(iVal reflect.Value, inlineable bool) (nodeId, string) {
-	iValAddr := iVal.UnsafeAddr()
 	pointee := iVal.Elem()
 	pointeeNode, summary := m.mapValue(pointee, false)
 
 	if !inlineable {
-		id := m.newBasicNode(iValAddr, "*"+summary)
-		fmt.Fprintf(m.writer, "  %d:name -> %d:name;\n", m.nodeIds[iValAddr], pointeeNode)
+		id := m.newBasicNode(iVal, "*"+summary)
+		fmt.Fprintf(m.writer, "  %d:name -> %d:name;\n", id, pointeeNode)
 		return id, "*" + summary
 	}
 
 	return pointeeNode, "*" + summary
 }
 
-func (m *mapper) mapStruct(iVal reflect.Value) (nodeId, string) {
-	iValAddr := iVal.UnsafeAddr()
-
-	id := m.getNodeId(iValAddr)
+func (m *mapper) mapStruct(structVal reflect.Value) (nodeId, string) {
+	id := m.getNodeId(structVal)
 
 	var fields []string
 	var links []string
 
-	uType := iVal.Type()
+	uType := structVal.Type()
 	for index := 0; index < uType.NumField(); index++ {
-		field := iVal.Field(index)
+		field := structVal.Field(index)
 		field = reflect.NewAt(field.Type(), unsafe.Pointer(field.UnsafeAddr())).Elem()
-		if field.Kind() == reflect.Ptr || field.Kind() == reflect.Interface {
-			fieldAddr, summary := m.mapValue(field, true)
+		fieldId, summary := m.mapValue(field, true)
+
+		// if field was inlined (id == 0) then print summary, else just the name and a link to the actual
+		if fieldId == 0 {
 			fields = append(fields, fmt.Sprintf("%s: %s", uType.Field(index).Name, summary))
-			if fieldAddr != 0 {
-				links = append(links, fmt.Sprintf("  %d:f%d -> %d:name;\n", id, index, fieldAddr))
-			}
 		} else {
-			fields = append(fields, fmt.Sprintf("%s: %s", uType.Field(index).Name, fmt.Sprint(field.Interface())))
+			fields = append(fields, uType.Field(index).Name)
+			links = append(links, fmt.Sprintf("  %d:f%d -> %d:name;\n", id, index, fieldId))
 		}
 	}
 
-	node := fmt.Sprintf("  %d [label=\"<name> %s", id, iVal.Type().Name())
+	node := fmt.Sprintf("  %d [label=\"<name> %s", id, structVal.Type().Name())
 	for index, name := range fields {
 		node += fmt.Sprintf("|<f%d> %s", index, name)
 	}
@@ -157,17 +175,22 @@ func (m *mapper) mapStruct(iVal reflect.Value) (nodeId, string) {
 	return id, uType.String()
 }
 
-func (m *mapper) mapSlice(slice reflect.Value) (nodeId, string) {
-	addr := slice.UnsafeAddr()
-	id := m.getNodeId(addr)
+func (m *mapper) mapSlice(sliceVal reflect.Value) (nodeId, string) {
+	id := m.getNodeId(sliceVal)
 
-	length := slice.Len()
-	node := fmt.Sprintf("  %d [label=\"<name> %s", id, slice.Type().String())
+	length := sliceVal.Len()
+	node := fmt.Sprintf("  %d [label=\"<name> %s", id, sliceVal.Type().String())
 	var links []string
 	for index := 0; index < length; index++ {
-		indexId, summary := m.mapValue(slice.Index(index), true)
-		node += fmt.Sprintf("|<f%d> %d: %s", index, index, summary)
-		links = append(links, fmt.Sprintf("  %d:f%d -> %d:name;\n", id, index, indexId))
+		indexId, summary := m.mapValue(sliceVal.Index(index), true)
+		if indexId == 0 {
+			// field was inlined
+			node += fmt.Sprintf("|<f%d> %d: %s", index, index, summary)
+		} else {
+			// need a link to the new node and don't care about the summary
+			node += fmt.Sprintf("|<f%d> %d", index, index)
+			links = append(links, fmt.Sprintf("  %d:f%d -> %d:name;\n", id, index, indexId))
+		}
 	}
 	node += "\"];\n"
 
@@ -176,5 +199,5 @@ func (m *mapper) mapSlice(slice reflect.Value) (nodeId, string) {
 		fmt.Fprint(m.writer, link)
 	}
 
-	return id, slice.Type().String()
+	return id, sliceVal.Type().String()
 }
