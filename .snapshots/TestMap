@@ -1,0 +1,5 @@
+(*bytes.Buffer)(digraph structs {
+  node [shape=Mrecord];
+  1 [label="<name> structMap|<f0> id: parent|<f1> links: map[0xc042002b40:true 0xc042002b20:true]"];
+}
+)

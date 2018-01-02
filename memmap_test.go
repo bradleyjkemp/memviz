@@ -3,29 +3,28 @@ package memmap
 import (
 	"bytes"
 	"fmt"
-	"strings"
 	"testing"
 
 	"github.com/bradleyjkemp/cupaloy"
 )
 
-type btree struct {
+type tree struct {
 	id    int
-	left  *btree
-	right *btree
+	left  *tree
+	right *tree
 }
 
 func TestTree(t *testing.T) {
-	root := &btree{
+	root := &tree{
 		id: 0,
-		left: &btree{
+		left: &tree{
 			id: 1,
 		},
-		right: &btree{
+		right: &tree{
 			id: 2,
 		},
 	}
-	leaf := &btree{
+	leaf := &tree{
 		id: 3,
 	}
 
@@ -35,7 +34,32 @@ func TestTree(t *testing.T) {
 	b := &bytes.Buffer{}
 	Map(b, root)
 	fmt.Println(b.String())
-	cupaloy.SnapshotT(t, strings.Split(b.String(), "\n"))
+	cupaloy.SnapshotT(t, b)
+}
+
+func TestSliceTree(t *testing.T) {
+	root := &tree{
+		id: 0,
+		left: &tree{
+			id: 1,
+		},
+		right: &tree{
+			id: 2,
+		},
+	}
+	leaf := &tree{
+		id: 3,
+	}
+
+	root.left.right = leaf
+	root.right.left = leaf
+
+	slice := []*tree{root, root.left, root.right, leaf}
+
+	b := &bytes.Buffer{}
+	Map(b, &slice)
+	fmt.Println(b.String())
+	cupaloy.SnapshotT(t, b)
 }
 
 type fib struct {
@@ -79,5 +103,49 @@ func TestFib(t *testing.T) {
 	b := &bytes.Buffer{}
 	Map(b, f5)
 	fmt.Println(b.String())
-	cupaloy.SnapshotT(t, strings.Split(b.String(), "\n"))
+	cupaloy.SnapshotT(t, b)
+}
+
+//type structMap struct {
+//	id    string
+//	links map[*structMap]bool
+//}
+//
+//func TestMap(t *testing.T) {
+//	leaf := &structMap{
+//		"leaf",
+//		nil,
+//	}
+//
+//	leaf2 := &structMap{
+//		"leaf2",
+//		nil,
+//	}
+//
+//	parent := &structMap{
+//		"parent",
+//		map[*structMap]bool{
+//			leaf:  true,
+//			leaf2: true,
+//		},
+//	}
+//
+//	leaf.links = map[*structMap]bool{parent: true}
+//
+//	b := &bytes.Buffer{}
+//	Map(b, parent)
+//	fmt.Println(b.String())
+//	cupaloy.SnapshotT(t, b)
+//}
+
+func TestPointerChain(t *testing.T) {
+	str := "Hello world"
+	str2 := &str
+	str3 := &str2
+	str4 := &str3
+
+	b := &bytes.Buffer{}
+	Map(b, &str4)
+	fmt.Println(b.String())
+	cupaloy.SnapshotT(t, b)
 }
