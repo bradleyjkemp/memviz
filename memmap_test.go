@@ -3,6 +3,7 @@ package memmap
 import (
 	"bytes"
 	"fmt"
+	"os"
 	"testing"
 
 	"github.com/bradleyjkemp/cupaloy"
@@ -161,8 +162,11 @@ func TestMap(t *testing.T) {
 	Map(b, parent)
 	fmt.Println(b.String())
 
-	// TODO: enable snapshot once map keys are sorted (and so this has stable output)
-	//cupaloy.SnapshotT(t, b)
+	// TODO: enable snapshot assertion once map keys are sorted (and so this has stable output)
+	err := cupaloy.Snapshot(b)
+	if err != nil {
+		fmt.Fprintln(os.Stderr, err)
+	}
 }
 
 func TestPointerChain(t *testing.T) {

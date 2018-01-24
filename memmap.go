@@ -99,10 +99,8 @@ func (m *mapper) mapValue(iVal reflect.Value, parentID nodeID, inlineable bool) 
 
 	switch iVal.Kind() {
 	// Indirections
-	case reflect.Ptr:
-		return m.mapPtr(iVal, inlineable)
-	case reflect.Interface:
-		return m.mapInterface(iVal, inlineable)
+	case reflect.Ptr, reflect.Interface:
+		return m.mapPtrIface(iVal, inlineable)
 
 	// Collections
 	case reflect.Struct:

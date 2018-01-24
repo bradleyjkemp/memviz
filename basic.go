@@ -6,33 +6,19 @@ import (
 	"strconv"
 )
 
-func (m *mapper) mapPtr(iVal reflect.Value, inlineable bool) (nodeID, string) {
+func (m *mapper) mapPtrIface(iVal reflect.Value, inlineable bool) (nodeID, string) {
 	pointee := iVal.Elem()
 	key := getNodeKey(iVal)
 
 	// inlineable=false so an invalid parentID is fine
-	pointeeNode, summary := m.mapValue(pointee, 0, false)
-	summary = "*" + summary
+	pointeeNode, pointeeSummary := m.mapValue(pointee, 0, false)
+	summary := iVal.Type().String()
 	m.nodeSummaries[key] = summary
 
-	if !inlineable {
-		id := m.newBasicNode(iVal, summary)
-		fmt.Fprintf(m.writer, "  %d:name -> %d:name;\n", id, pointeeNode)
-		return id, summary
+	if !pointee.IsValid() {
+		m.nodeSummaries[key] += "(" + pointeeSummary + ")"
+		return pointeeNode, m.nodeSummaries[key]
 	}
-
-	return pointeeNode, summary
-}
-
-func (m *mapper) mapInterface(iVal reflect.Value, inlineable bool) (nodeID, string) {
-	pointee := iVal.Elem()
-	fmt.Println(iVal.Type().String())
-	key := getNodeKey(iVal)
-
-	// inlineable=false so an invalid parentID is fine
-	pointeeNode, summary := m.mapValue(pointee, 0, false)
-	summary = "interface{}(" + summary + ")"
-	m.nodeSummaries[key] = summary
 
 	if !inlineable {
 		id := m.newBasicNode(iVal, summary)

@@ -68,10 +68,13 @@ func (m *mapper) mapSlice(sliceVal reflect.Value, parentID nodeID, inlineable bo
 	var links []string
 	for index := 0; index < length; index++ {
 		indexID, summary := m.mapValue(sliceVal.Index(index), sliceID, true)
-		elements += fmt.Sprintf("|{<%dindex%d> %d|<%dvalue%d> %s}", sliceID, index, index, sliceID, index, summary)
 		if indexID != 0 {
 			// need pointer to value
-			links = append(links, fmt.Sprintf("  %d:<%dvalue%d> -> %d:name;\n", sourceID, sliceID, index, indexID))
+			elements += fmt.Sprintf("|<%dindex%d> %d", sliceID, index, index)
+			links = append(links, fmt.Sprintf("  %d:<%dindex%d> -> %d:name;\n", sourceID, sliceID, index, indexID))
+		} else {
+			// field was inlined so print summary
+			elements += fmt.Sprintf("|{<%dindex%d> %d|<%dvalue%d> %s}", sliceID, index, index, sliceID, index, summary)
 		}
 	}
 
