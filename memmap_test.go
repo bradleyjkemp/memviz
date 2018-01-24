@@ -62,6 +62,39 @@ func TestTree(t *testing.T) {
 	cupaloy.SnapshotT(t, b)
 }
 
+func TestVariadicArguments(t *testing.T) {
+	leaf := &tree{
+		0,
+		nil,
+		nil,
+	}
+	inner1 := &tree{
+		1,
+		nil,
+		leaf,
+	}
+	inner2 := &tree{
+		2,
+		leaf,
+		nil,
+	}
+	root1 := &tree{
+		3,
+		inner1,
+		inner2,
+	}
+	root2 := &tree{
+		4,
+		inner2,
+		nil,
+	}
+
+	b := &bytes.Buffer{}
+	Map(b, root1, root2)
+	fmt.Println(b.String())
+	cupaloy.SnapshotT(t, b)
+}
+
 func TestSliceTree(t *testing.T) {
 	root := &tree{
 		id: 0,
