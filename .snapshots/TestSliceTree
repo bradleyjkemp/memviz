@@ -8,10 +8,10 @@
   2 [label="<name> tree |{<f0> id | 0} |<f1> left|<f2> right "];
   2:f1 -> 3:name;
   2:f2 -> 5:name;
-  1 [label="<name> []*memmap.tree|{<index0> 0|<value0> *memmap.tree}|{<index1> 1|<value1> *memmap.tree}|{<index2> 2|<value2> *memmap.tree}|{<index3> 3|<value3> *memmap.tree}"];
-  1:value0 -> 2:name;
-  1:value1 -> 3:name;
-  1:value2 -> 5:name;
-  1:value3 -> 4:name;
+  1:<1value0> -> 2:name;
+  1:<1value1> -> 3:name;
+  1:<1value2> -> 5:name;
+  1:<1value3> -> 4:name;
+  1 [label="<name> []*memmap.tree |{<1index0> 0|<1value0> *memmap.tree}|{<1index1> 1|<1value1> *memmap.tree}|{<1index2> 2|<1value2> *memmap.tree}|{<1index3> 3|<1value3> *memmap.tree} "];
 }
 )
