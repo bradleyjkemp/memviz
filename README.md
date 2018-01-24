@@ -3,3 +3,5 @@
 Take arbitrary data structures and turn them into a easy to understand graph:
 
 ![fibonacci](images/fib.svg)
+
+Just pass a pointer to your data structure like so: ```memmap.Map(out, &data)``` and then pipe the output into graphviz.
