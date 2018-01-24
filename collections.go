@@ -92,7 +92,6 @@ func (m *mapper) mapSlice(sliceVal reflect.Value, parentID nodeID, inlineable bo
 		return 0, "{" + elements[1:] + "}"
 	}
 
-	fmt.Println("creating new node", sliceID)
 	// else create a new node
 	node := fmt.Sprintf("  %d [label=\"<name> %s %s \"];\n", sliceID, sliceType, elements)
 	fmt.Fprint(m.writer, node)
