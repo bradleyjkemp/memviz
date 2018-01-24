@@ -28,15 +28,19 @@ type mapper struct {
 }
 
 // Map prints out a Graphviz digraph of the given datastructure to the given io.Writer
-func Map(w io.Writer, i interface{}) {
-	iVal := reflect.ValueOf(i)
-	if !iVal.CanAddr() {
-		if iVal.Kind() != reflect.Ptr && iVal.Kind() != reflect.Interface {
-			fmt.Fprint(w, "error: cannot map unaddressable value")
-			return
-		}
+func Map(w io.Writer, is ...interface{}) {
+	var iVals []reflect.Value
+	for _, i := range is {
+		iVal := reflect.ValueOf(i)
+		if !iVal.CanAddr() {
+			if iVal.Kind() != reflect.Ptr && iVal.Kind() != reflect.Interface {
+				fmt.Fprint(w, "error: cannot map unaddressable value")
+				return
+			}
 
-		iVal = iVal.Elem()
+			iVal = iVal.Elem()
+		}
+		iVals = append(iVals, iVal)
 	}
 
 	m := &mapper{
@@ -48,7 +52,9 @@ func Map(w io.Writer, i interface{}) {
 
 	fmt.Fprintln(w, "digraph structs {")
 	fmt.Fprintln(w, "  node [shape=Mrecord];")
-	m.mapValue(iVal, 0, false)
+	for _, iVal := range iVals {
+		m.mapValue(iVal, 0, false)
+	}
 	fmt.Fprintln(w, "}")
 }
 

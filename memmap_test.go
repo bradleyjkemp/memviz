@@ -1,4 +1,4 @@
-package memmap
+package memmap_test
 
 import (
 	"bytes"
@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/bradleyjkemp/cupaloy"
+	"github.com/bradleyjkemp/memmap"
 )
 
 type basics struct {
@@ -28,7 +29,7 @@ func TestBasicTypes(t *testing.T) {
 	}
 
 	buf := &bytes.Buffer{}
-	Map(buf, b)
+	memmap.Map(buf, b)
 	fmt.Println(buf.String())
 	cupaloy.SnapshotT(t, buf)
 }
@@ -57,7 +58,40 @@ func TestTree(t *testing.T) {
 	root.right.left = leaf
 
 	b := &bytes.Buffer{}
-	Map(b, root)
+	memmap.Map(b, root)
+	fmt.Println(b.String())
+	cupaloy.SnapshotT(t, b)
+}
+
+func TestVariadicArguments(t *testing.T) {
+	leaf := &tree{
+		0,
+		nil,
+		nil,
+	}
+	inner1 := &tree{
+		1,
+		nil,
+		leaf,
+	}
+	inner2 := &tree{
+		2,
+		leaf,
+		nil,
+	}
+	root1 := &tree{
+		3,
+		inner1,
+		inner2,
+	}
+	root2 := &tree{
+		4,
+		inner2,
+		nil,
+	}
+
+	b := &bytes.Buffer{}
+	memmap.Map(b, root1, root2)
 	fmt.Println(b.String())
 	cupaloy.SnapshotT(t, b)
 }
@@ -82,7 +116,7 @@ func TestSliceTree(t *testing.T) {
 	slice := []*tree{root, root.left, root.right, leaf}
 
 	b := &bytes.Buffer{}
-	Map(b, &slice)
+	memmap.Map(b, &slice)
 	fmt.Println(b.String())
 	cupaloy.SnapshotT(t, b)
 }
@@ -126,7 +160,7 @@ func TestFib(t *testing.T) {
 	}
 
 	b := &bytes.Buffer{}
-	Map(b, f5)
+	memmap.Map(b, f5)
 	fmt.Println(b.String())
 	cupaloy.SnapshotT(t, b)
 }
@@ -159,7 +193,7 @@ func TestMap(t *testing.T) {
 	parent.links[parent] = true
 
 	b := &bytes.Buffer{}
-	Map(b, parent)
+	memmap.Map(b, parent)
 	fmt.Println(b.String())
 
 	// TODO: enable snapshot assertion once map keys are sorted (and so this has stable output)
@@ -176,7 +210,7 @@ func TestPointerChain(t *testing.T) {
 	str4 := &str3
 
 	b := &bytes.Buffer{}
-	Map(b, &str4)
+	memmap.Map(b, &str4)
 	fmt.Println(b.String())
 	cupaloy.SnapshotT(t, b)
 }
@@ -195,7 +229,7 @@ func TestPointerAliasing(t *testing.T) {
 	}
 
 	b := &bytes.Buffer{}
-	Map(b, &root)
+	memmap.Map(b, &root)
 	fmt.Println(b.String())
 	cupaloy.SnapshotT(t, b)
 }
