@@ -3,6 +3,7 @@ package memmap
 import (
 	"bytes"
 	"fmt"
+	"os"
 	"testing"
 
 	"github.com/bradleyjkemp/cupaloy"
@@ -13,6 +14,7 @@ type basics struct {
 	string string
 	slice  []string
 	ptr    *string
+	iface  interface{}
 }
 
 func TestBasicTypes(t *testing.T) {
@@ -22,6 +24,7 @@ func TestBasicTypes(t *testing.T) {
 		"Hi",
 		[]string{"Hello", "World"},
 		&str,
+		"interfaceValue",
 	}
 
 	buf := &bytes.Buffer{}
@@ -159,8 +162,11 @@ func TestMap(t *testing.T) {
 	Map(b, parent)
 	fmt.Println(b.String())
 
-	// TODO: enable snapshot once map keys are sorted (and so this has stable output)
-	//cupaloy.SnapshotT(t, b)
+	// TODO: enable snapshot assertion once map keys are sorted (and so this has stable output)
+	err := cupaloy.Snapshot(b)
+	if err != nil {
+		fmt.Fprintln(os.Stderr, err)
+	}
 }
 
 func TestPointerChain(t *testing.T) {
@@ -171,6 +177,25 @@ func TestPointerChain(t *testing.T) {
 
 	b := &bytes.Buffer{}
 	Map(b, &str4)
+	fmt.Println(b.String())
+	cupaloy.SnapshotT(t, b)
+}
+
+func TestPointerAliasing(t *testing.T) {
+	leaf := "leaf"
+	parent0 := &leaf
+	parent1 := &parent0
+	parent2 := &leaf
+	root := struct {
+		left  **string
+		right *string
+	}{
+		parent1,
+		parent2,
+	}
+
+	b := &bytes.Buffer{}
+	Map(b, &root)
 	fmt.Println(b.String())
 	cupaloy.SnapshotT(t, b)
 }
