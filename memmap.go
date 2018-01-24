@@ -98,10 +98,11 @@ func (m *mapper) mapValue(iVal reflect.Value, parentID nodeID, inlineable bool) 
 	}
 
 	switch iVal.Kind() {
+	// Indirections
 	case reflect.Ptr:
-		childID, summary := m.mapPtr(iVal, inlineable)
-		m.nodeSummaries[key] = summary
-		return childID, summary
+		return m.mapPtr(iVal, inlineable)
+	case reflect.Interface:
+		return m.mapInterface(iVal, inlineable)
 
 	// Collections
 	case reflect.Struct:
@@ -125,19 +126,4 @@ func (m *mapper) mapValue(iVal reflect.Value, parentID nodeID, inlineable bool) 
 	default:
 		return m.newBasicNode(iVal, fmt.Sprint(iVal.Interface())), iVal.Kind().String()
 	}
-}
-
-func (m *mapper) mapPtr(iVal reflect.Value, inlineable bool) (nodeID, string) {
-	pointee := iVal.Elem()
-
-	// inlineable=false so an invalid parentID is fine
-	pointeeNode, summary := m.mapValue(pointee, 0, false)
-
-	if !inlineable {
-		id := m.newBasicNode(iVal, "*"+summary)
-		fmt.Fprintf(m.writer, "  %d:name -> %d:name;\n", id, pointeeNode)
-		return id, "*" + summary
-	}
-
-	return pointeeNode, "*" + summary
 }

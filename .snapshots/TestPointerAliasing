@@ -1,0 +1,10 @@
+(*bytes.Buffer)(digraph structs {
+  node [shape=Mrecord];
+  2 [label="<name> \"leaf\""];
+  3 [label="<name> *string"];
+  3:name -> 2:name;
+  1 [label="<name>  |<f0> left|<f1> right "];
+  1:f0 -> 3:name;
+  1:f1 -> 2:name;
+}
+)
