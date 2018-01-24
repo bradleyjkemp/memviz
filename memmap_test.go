@@ -8,6 +8,28 @@ import (
 	"github.com/bradleyjkemp/cupaloy"
 )
 
+type basics struct {
+	int    int
+	string string
+	slice  []string
+	ptr    *string
+}
+
+func TestBasicTypes(t *testing.T) {
+	str := "Hello"
+	b := &basics{
+		1,
+		"Hi",
+		[]string{"Hello", "World"},
+		&str,
+	}
+
+	buf := &bytes.Buffer{}
+	Map(buf, b)
+	fmt.Println(buf.String())
+	cupaloy.SnapshotT(t, buf)
+}
+
 type tree struct {
 	id    int
 	left  *tree

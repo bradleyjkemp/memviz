@@ -40,29 +40,61 @@ func (m *mapper) mapStruct(structVal reflect.Value) (nodeID, string) {
 }
 
 func (m *mapper) mapSlice(sliceVal reflect.Value, parentID nodeID, inlineable bool) (nodeID, string) {
-	id := m.getNodeID(sliceVal)
+	sliceID := m.getNodeID(sliceVal)
 	key := getNodeKey(sliceVal)
-	m.nodeSummaries[key] = sliceVal.Type().String()
+	sliceType := sliceVal.Type().String()
+	m.nodeSummaries[key] = sliceType
+
+	if sliceVal.Len() == 0 {
+		m.nodeSummaries[key] = sliceType + "\\{\\}"
+
+		if inlineable {
+			return 0, m.nodeSummaries[key]
+		}
+
+		return m.newBasicNode(sliceVal, m.nodeSummaries[key]), sliceType
+	}
+
+	// sourceID is the nodeID that links will start from
+	// if inlined then these come from the parent
+	// if not inlined then these come from this node
+	sourceID := sliceID
+	if inlineable && sliceVal.Len() <= m.inlineableItemLimit {
+		sourceID = parentID
+	}
 
 	length := sliceVal.Len()
-	node := fmt.Sprintf("  %d [label=\"<name> %s", id, sliceVal.Type().String())
+	var elements string
 	var links []string
 	for index := 0; index < length; index++ {
-		indexID, summary := m.mapValue(sliceVal.Index(index), id, true)
-		node += fmt.Sprintf("|{<index%d> %d|<value%d> %s}", index, index, index, summary)
+		indexID, summary := m.mapValue(sliceVal.Index(index), sliceID, true)
+		elements += fmt.Sprintf("|{<%dindex%d> %d|<%dvalue%d> %s}", sliceID, index, index, sliceID, index, summary)
 		if indexID != 0 {
 			// need pointer to value
-			links = append(links, fmt.Sprintf("  %d:value%d -> %d:name;\n", id, index, indexID))
+			links = append(links, fmt.Sprintf("  %d:<%dvalue%d> -> %d:name;\n", sourceID, sliceID, index, indexID))
 		}
 	}
-	node += "\"];\n"
 
-	fmt.Fprint(m.writer, node)
 	for _, link := range links {
 		fmt.Fprint(m.writer, link)
 	}
 
-	return id, m.nodeSummaries[key]
+	if inlineable && length <= m.inlineableItemLimit {
+		// inline slice
+		// remove stored summary so this gets regenerated every time
+		// we need to do this so that we get a chance to print out the new links
+		delete(m.nodeSummaries, key)
+
+		// have to remove invalid leading |
+		return 0, "{" + elements[1:] + "}"
+	}
+
+	fmt.Println("creating new node", sliceID)
+	// else create a new node
+	node := fmt.Sprintf("  %d [label=\"<name> %s %s \"];\n", sliceID, sliceType, elements)
+	fmt.Fprint(m.writer, node)
+
+	return sliceID, m.nodeSummaries[key]
 }
 
 func (m *mapper) mapMap(mapVal reflect.Value, parentID nodeID, inlineable bool) (nodeID, string) {
@@ -74,13 +106,13 @@ func (m *mapper) mapMap(mapVal reflect.Value, parentID nodeID, inlineable bool) 
 	nodeKey := getNodeKey(mapVal)
 
 	if mapVal.Len() == 0 {
-		m.nodeSummaries[nodeKey] = mapType + "{}"
+		m.nodeSummaries[nodeKey] = mapType + "\\{\\}"
 
 		if inlineable {
-			return 0, mapType
+			return 0, m.nodeSummaries[nodeKey]
 		}
 
-		return m.newBasicNode(mapVal, mapType+"{}"), mapType
+		return m.newBasicNode(mapVal, mapType+"\\{\\}"), mapType
 	}
 
 	mapID := m.getNodeID(mapVal)
