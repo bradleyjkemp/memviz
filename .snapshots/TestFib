@@ -1,4 +1,4 @@
-(*bytes.Buffer)(digraph structs {
+digraph structs {
   node [shape=Mrecord];
   6 [label="<name> fib |{<f0> index | 0} |{<f1> prev | *memmap_test.fib(nil)} |{<f2> prevprev | *memmap_test.fib(nil)}  "];
   5 [label="<name> fib |{<f0> index | 1} |<f1> prev|{<f2> prevprev | *memmap_test.fib(nil)}  "];
@@ -16,4 +16,4 @@
   1:f1 -> 2:name;
   1:f2 -> 3:name;
 }
-)
+

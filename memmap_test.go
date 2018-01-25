@@ -31,7 +31,7 @@ func TestBasicTypes(t *testing.T) {
 	buf := &bytes.Buffer{}
 	memmap.Map(buf, b)
 	fmt.Println(buf.String())
-	cupaloy.SnapshotT(t, buf)
+	cupaloy.SnapshotT(t, buf.Bytes())
 }
 
 type tree struct {
@@ -60,7 +60,7 @@ func TestTree(t *testing.T) {
 	b := &bytes.Buffer{}
 	memmap.Map(b, root)
 	fmt.Println(b.String())
-	cupaloy.SnapshotT(t, b)
+	cupaloy.SnapshotT(t, b.Bytes())
 }
 
 func TestVariadicArguments(t *testing.T) {
@@ -93,7 +93,7 @@ func TestVariadicArguments(t *testing.T) {
 	b := &bytes.Buffer{}
 	memmap.Map(b, root1, root2)
 	fmt.Println(b.String())
-	cupaloy.SnapshotT(t, b)
+	cupaloy.SnapshotT(t, b.Bytes())
 }
 
 func TestSliceTree(t *testing.T) {
@@ -118,7 +118,7 @@ func TestSliceTree(t *testing.T) {
 	b := &bytes.Buffer{}
 	memmap.Map(b, &slice)
 	fmt.Println(b.String())
-	cupaloy.SnapshotT(t, b)
+	cupaloy.SnapshotT(t, b.Bytes())
 }
 
 type fib struct {
@@ -162,7 +162,7 @@ func TestFib(t *testing.T) {
 	b := &bytes.Buffer{}
 	memmap.Map(b, f5)
 	fmt.Println(b.String())
-	cupaloy.SnapshotT(t, b)
+	cupaloy.SnapshotT(t, b.Bytes())
 }
 
 type structMap struct {
@@ -197,7 +197,7 @@ func TestMap(t *testing.T) {
 	fmt.Println(b.String())
 
 	// TODO: enable snapshot assertion once map keys are sorted (and so this has stable output)
-	err := cupaloy.Snapshot(b)
+	err := cupaloy.Snapshot(b.Bytes())
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
 	}
@@ -212,7 +212,7 @@ func TestPointerChain(t *testing.T) {
 	b := &bytes.Buffer{}
 	memmap.Map(b, &str4)
 	fmt.Println(b.String())
-	cupaloy.SnapshotT(t, b)
+	cupaloy.SnapshotT(t, b.Bytes())
 }
 
 func TestPointerAliasing(t *testing.T) {
@@ -231,5 +231,5 @@ func TestPointerAliasing(t *testing.T) {
 	b := &bytes.Buffer{}
 	memmap.Map(b, &root)
 	fmt.Println(b.String())
-	cupaloy.SnapshotT(t, b)
+	cupaloy.SnapshotT(t, b.Bytes())
 }

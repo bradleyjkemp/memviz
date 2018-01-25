@@ -1,4 +1,4 @@
-(*bytes.Buffer)(digraph structs {
+digraph structs {
   node [shape=Mrecord];
   3 [label="<name> \"Hello\""];
   4 [label="<name> \"interfaceValue\""];
@@ -6,4 +6,4 @@
   1:f3 -> 3:name;
   1:f4 -> 4:name;
 }
-)
+

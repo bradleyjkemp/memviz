@@ -1,4 +1,4 @@
-(*bytes.Buffer)(digraph structs {
+digraph structs {
   node [shape=Mrecord];
   3 [label="<name> tree |{<f0> id | 3} |{<f1> left | *memmap_test.tree(nil)} |{<f2> right | *memmap_test.tree(nil)}  "];
   2 [label="<name> tree |{<f0> id | 1} |{<f1> left | *memmap_test.tree(nil)} |<f2> right "];
@@ -9,4 +9,4 @@
   1:f1 -> 2:name;
   1:f2 -> 4:name;
 }
-)
+

@@ -1,4 +1,4 @@
-(*bytes.Buffer)(digraph structs {
+digraph structs {
   node [shape=Mrecord];
   3 [label="<name> structMap |{<f0> id | \"leaf2\"} |{<f1> links | map\[*memmap.structMap\]bool}  "];
   4:<5key0> -> 1:name;
@@ -8,4 +8,3 @@
   1:<2key2> -> 4:name;
   1 [label="<name> structMap |{<f0> id | \"parent\"} |{<f1> links | {{<2key0> *memmap.structMap| <2value0> true}|{<2key1> *memmap.structMap| <2value1> true}|{<2key2> *memmap.structMap| <2value2> true}}}  "];
 }
-)
