@@ -4,8 +4,8 @@
 [[projects]]
   name = "github.com/bradleyjkemp/cupaloy"
   packages = ["."]
-  revision = "c9f1635bda5049b93b791588013ad7a65f38b170"
-  version = "v1.2.0"
+  revision = "0d797813a76b4573317a916b0c5816dc55fff62d"
+  version = "v2.0.0"
 
 [[projects]]
   name = "github.com/davecgh/go-spew"
@@ -22,6 +22,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "5f208a56399cbbd809aa6903ec476c8098fa6096b4cef240b711044a121b1fd7"
+  inputs-digest = "2a6e57b33608c07af64a42dc54065bbc92add2c53112734635be4cda3e52164c"
   solver-name = "gps-cdcl"
   solver-version = 1
