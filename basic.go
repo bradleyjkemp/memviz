@@ -30,7 +30,12 @@ func (m *mapper) mapPtrIface(iVal reflect.Value, inlineable bool) (nodeID, strin
 }
 
 func (m *mapper) mapString(stringVal reflect.Value, inlineable bool) (nodeID, string) {
-	quoted := fmt.Sprintf("\\\"%s\\\"", stringVal.String())
+	// We want the output to look like a Go quoted string literal. The first
+	// Quote achieves that. The second is to quote it for graphviz itself.
+	quoted := strconv.Quote(strconv.Quote(stringVal.String()))
+	// Lastly, quoting adds quotation-marks around the string, but it is
+	// inserted into a graphviz string literal, so we have to remove those.
+	quoted = quoted[1 : len(quoted)-1]
 	if inlineable {
 		return 0, quoted
 	}
