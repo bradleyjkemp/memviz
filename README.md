@@ -1,4 +1,4 @@
-# memmap [![Build Status](https://travis-ci.org/bradleyjkemp/memmap.svg?branch=master)](https://travis-ci.org/bradleyjkemp/memmap) [![Coverage Status](https://coveralls.io/repos/github/bradleyjkemp/memmap/badge.svg)](https://coveralls.io/github/bradleyjkemp/memmap?branch=master) [![Go Report Card](https://goreportcard.com/badge/github.com/bradleyjkemp/memmap)](https://goreportcard.com/report/github.com/bradleyjkemp/memmap) [![GoDoc](https://godoc.org/github.com/bradleyjkemp/memmap?status.svg)](https://godoc.org/github.com/bradleyjkemp/memmap)
+# memviz [![Build Status](https://travis-ci.org/bradleyjkemp/memviz.svg?branch=master)](https://travis-ci.org/bradleyjkemp/memviz) [![Coverage Status](https://coveralls.io/repos/github/bradleyjkemp/memviz/badge.svg)](https://coveralls.io/github/bradleyjkemp/memviz?branch=master) [![Go Report Card](https://goreportcard.com/badge/github.com/bradleyjkemp/memviz)](https://goreportcard.com/report/github.com/bradleyjkemp/memviz) [![GoDoc](https://godoc.org/github.com/bradleyjkemp/memviz?status.svg)](https://godoc.org/github.com/bradleyjkemp/memviz)
 
 How would you rather debug a data structure?
 <table>
@@ -40,6 +40,6 @@ How would you rather debug a data structure?
   </tr>
 </table>
 
-`memmap` takes a pointer to an arbitrary data structure and generates an easy to understand graph.
+`memviz` takes a pointer to an arbitrary data structure and generates an easy to understand graph.
 
-Simply pass in your data structure like so: ```memmap.Map(out, &data)``` and then pipe the output into graphviz.
+Simply pass in your data structure like so: ```memviz.Map(out, &data)``` and then pipe the output into graphviz.
