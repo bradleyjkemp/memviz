@@ -1,7 +1,7 @@
 digraph structs {
   node [shape=Mrecord];
-  6 [label="<name> fib |{<f0> index | 0} |{<f1> prev | *memmap_test.fib(nil)} |{<f2> prevprev | *memmap_test.fib(nil)}  "];
-  5 [label="<name> fib |{<f0> index | 1} |<f1> prev|{<f2> prevprev | *memmap_test.fib(nil)}  "];
+  6 [label="<name> fib |{<f0> index | 0} |{<f1> prev | *memviz_test.fib(nil)} |{<f2> prevprev | *memviz_test.fib(nil)}  "];
+  5 [label="<name> fib |{<f0> index | 1} |<f1> prev|{<f2> prevprev | *memviz_test.fib(nil)}  "];
   5:f1 -> 6:name;
   4 [label="<name> fib |{<f0> index | 2} |<f1> prev|<f2> prevprev "];
   4:f1 -> 5:name;
