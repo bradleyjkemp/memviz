@@ -36,7 +36,7 @@ How would you rather debug a data structure?
    .
    .</pre>
     </td>
-    <td width="60%"><image src="images/fib.svg"></td>
+    <td width="60%"><image src=".github/fib.svg"></td>
   </tr>
 </table>
 
