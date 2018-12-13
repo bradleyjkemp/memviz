@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"reflect"
+	"strings"
 )
 
 //var spewer = &spew.ConfigState{
@@ -130,4 +131,14 @@ func (m *mapper) mapValue(iVal reflect.Value, parentID nodeID, inlineable bool) 
 	default:
 		return m.newBasicNode(iVal, fmt.Sprint(iVal.Interface())), iVal.Kind().String()
 	}
+}
+
+var escaper = strings.NewReplacer(
+	"{", "\\{",
+	"}", "\\}",
+	"\"", "\\\"",
+)
+
+func escapeString(s string) string {
+	return escaper.Replace(s)
 }

@@ -3,7 +3,6 @@ package memviz
 import (
 	"fmt"
 	"reflect"
-	"strings"
 	"unsafe"
 )
 
@@ -11,12 +10,16 @@ func (m *mapper) mapStruct(structVal reflect.Value) (nodeID, string) {
 	uType := structVal.Type()
 	id := m.getNodeID(structVal)
 	key := getNodeKey(structVal)
-	m.nodeSummaries[key] = uType.String()
+	m.nodeSummaries[key] = escapeString(uType.String())
 
 	var fields string
 	var links []string
 	for index := 0; index < uType.NumField(); index++ {
 		field := structVal.Field(index)
+		if !field.CanAddr() {
+			// TODO: when does this happen? Can we work around it?
+			continue
+		}
 		field = reflect.NewAt(field.Type(), unsafe.Pointer(field.UnsafeAddr())).Elem()
 		fieldID, summary := m.mapValue(field, id, true)
 
@@ -42,7 +45,7 @@ func (m *mapper) mapStruct(structVal reflect.Value) (nodeID, string) {
 func (m *mapper) mapSlice(sliceVal reflect.Value, parentID nodeID, inlineable bool) (nodeID, string) {
 	sliceID := m.getNodeID(sliceVal)
 	key := getNodeKey(sliceVal)
-	sliceType := sliceVal.Type().String()
+	sliceType := escapeString(sliceVal.Type().String())
 	m.nodeSummaries[key] = sliceType
 
 	if sliceVal.Len() == 0 {
@@ -101,9 +104,8 @@ func (m *mapper) mapSlice(sliceVal reflect.Value, parentID nodeID, inlineable bo
 
 func (m *mapper) mapMap(mapVal reflect.Value, parentID nodeID, inlineable bool) (nodeID, string) {
 	// create a string type while escaping graphviz special characters
-	mapType := mapVal.Type().String()
-	mapType = strings.Replace(mapType, "[", "\\[", -1)
-	mapType = strings.Replace(mapType, "]", "\\]", -1)
+	mapType := escapeString(mapVal.Type().String())
+	fmt.Println("map type is", mapVal.Type().String())
 
 	nodeKey := getNodeKey(mapVal)
 
@@ -114,7 +116,7 @@ func (m *mapper) mapMap(mapVal reflect.Value, parentID nodeID, inlineable bool) 
 			return 0, m.nodeSummaries[nodeKey]
 		}
 
-		return m.newBasicNode(mapVal, mapType+"\\{\\}"), mapType
+		return m.newBasicNode(mapVal, m.nodeSummaries[nodeKey]), mapType
 	}
 
 	mapID := m.getNodeID(mapVal)
