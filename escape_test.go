@@ -41,3 +41,14 @@ func TestEmptyStruct(t *testing.T) {
 	fmt.Println(b.String())
 	cupaloy.SnapshotT(t, b.Bytes())
 }
+
+func TestEmptyInterface(t *testing.T) {
+	set := map[string]interface{}{}
+	set["hello"] = nil
+	set["world"] = nil
+
+	b := &bytes.Buffer{}
+	Map(b, &set)
+	fmt.Println(b.String())
+	cupaloy.SnapshotT(t, b.Bytes())
+}

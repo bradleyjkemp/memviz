@@ -12,7 +12,7 @@ func (m *mapper) mapPtrIface(iVal reflect.Value, inlineable bool) (nodeID, strin
 
 	// inlineable=false so an invalid parentID is fine
 	pointeeNode, pointeeSummary := m.mapValue(pointee, 0, false)
-	summary := iVal.Type().String()
+	summary := escapeString(iVal.Type().String())
 	m.nodeSummaries[key] = summary
 
 	if !pointee.IsValid() {
