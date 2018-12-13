@@ -40,6 +40,9 @@ How would you rather debug a data structure?
   </tr>
 </table>
 
+## Usage
 `memviz` takes a pointer to an arbitrary data structure and generates an easy to understand graph.
 
 Simply pass in your data structure like so: ```memviz.Map(out, &data)``` and then pipe the output into graphviz.
+
+For more complete examples see the tests in [memviz_test.go](https://github.com/bradleyjkemp/memviz/blob/master/memviz_test.go).
