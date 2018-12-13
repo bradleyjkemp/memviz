@@ -1,6 +1,9 @@
 package memviz
 
 import (
+	"bytes"
+	"fmt"
+	"github.com/bradleyjkemp/cupaloy"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -24,6 +27,17 @@ var cases = []struct {
 
 func TestEscapeString(t *testing.T) {
 	for _, tc := range cases {
-		require.Equal(t, tc.output, escapeString(tc.input))
+		assert.Equal(t, tc.output, escapeString(tc.input))
 	}
+}
+
+func TestEmptyStruct(t *testing.T) {
+	set := map[string]struct{}{}
+	set["hello"] = struct{}{}
+	set["world"] = struct{}{}
+
+	b := &bytes.Buffer{}
+	Map(b, &set)
+	fmt.Println(b.String())
+	cupaloy.SnapshotT(t, b.Bytes())
 }

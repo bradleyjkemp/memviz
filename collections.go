@@ -105,6 +105,7 @@ func (m *mapper) mapSlice(sliceVal reflect.Value, parentID nodeID, inlineable bo
 func (m *mapper) mapMap(mapVal reflect.Value, parentID nodeID, inlineable bool) (nodeID, string) {
 	// create a string type while escaping graphviz special characters
 	mapType := escapeString(mapVal.Type().String())
+	fmt.Println("map type is", mapVal.Type().String())
 
 	nodeKey := getNodeKey(mapVal)
 
