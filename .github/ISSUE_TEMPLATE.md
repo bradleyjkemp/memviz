@@ -1,7 +1,7 @@
-### Expected Behavior
+### Expected Behaviour
 What were you wanting/expecting to happen?
 
-### Actual Behavior
+### Actual Behaviour
 What actually happens at the moment?
 
 ### Example input
