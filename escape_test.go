@@ -32,9 +32,19 @@ func TestEscapeString(t *testing.T) {
 }
 
 func TestEmptyStruct(t *testing.T) {
-	set := map[string]struct{}{}
-	set["hello"] = struct{}{}
-	set["world"] = struct{}{}
+	set := make([]struct{}, 2)
+	set[0] = struct{}{}
+	set[1] = struct{}{}
+
+	b := &bytes.Buffer{}
+	Map(b, &set)
+	fmt.Println(b.String())
+	cupaloy.SnapshotT(t, b.Bytes())
+}
+
+func TestEmptyInterface(t *testing.T) {
+	set := map[string]interface{}{}
+	set["hello world"] = nil
 
 	b := &bytes.Buffer{}
 	Map(b, &set)

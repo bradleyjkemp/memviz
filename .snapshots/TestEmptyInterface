@@ -1,0 +1,5 @@
+digraph structs {
+  node [shape=Mrecord];
+  1 [label="<name> map[string]interface \{\} |{<1key0> \"hello world\"| <1value0> interface \{\}(nil)} "];
+}
+

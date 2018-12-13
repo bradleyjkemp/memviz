@@ -1,9 +1,8 @@
 digraph structs {
   node [shape=Mrecord];
   2 [label="<name>   "];
-  3 [label="<name>   "];
-  1:<1value0> -> 2:name;
-  1:<1value1> -> 3:name;
-  1 [label="<name> map[string]struct \{\} |{<1key0> \"hello\"| <1value0> struct \{\}}|{<1key1> \"world\"| <1value1> struct \{\}} "];
+  1:<1index0> -> 2:name;
+  1:<1index1> -> 2:name;
+  1 [label="<name> []struct \{\} |<1index0> 0|<1index1> 1 "];
 }
 
