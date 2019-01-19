@@ -3,7 +3,7 @@ package memviz
 import (
 	"bytes"
 	"fmt"
-	"github.com/bradleyjkemp/cupaloy"
+	"github.com/bradleyjkemp/cupaloy/v2"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
