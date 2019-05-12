@@ -4,28 +4,72 @@ import (
 	"bytes"
 	"fmt"
 	"os"
+	"reflect"
 	"testing"
 
 	"github.com/bradleyjkemp/cupaloy/v2"
 	"github.com/bradleyjkemp/memviz"
 )
 
+type basicNumerics struct {
+	uint8      uint8
+	uint32     uint32
+	uint64     uint64
+	int8       int8
+	int16      int16
+	int32      int32
+	int64      int64
+	float32    float32
+	float64    float64
+	complex64  complex64
+	complex128 complex128
+	byte       byte
+	rune       rune
+	uint       uint
+	int        int
+	uintptr    uintptr
+
+	Ptruint32     *uint32
+	Ptruint64     *uint64
+	Ptrint8       *int8
+	Ptrint16      *int16
+	Ptrint32      *int32
+	Ptrint64      *int64
+	Ptrfloat32    *float32
+	Ptrfloat64    *float64
+	Ptrcomplex64  *complex64
+	Ptrcomplex128 *complex128
+	Ptrbyte       *byte
+	Ptrrune       *rune
+	Ptruint       *uint
+	Ptrint        *int
+	Ptruintptr    *uintptr
+}
+
 type basics struct {
-	int    int
-	string string
-	slice  []string
-	ptr    *string
-	iface  interface{}
+	numerics *basicNumerics
+	string   string
+	slice    []string
+	ptr      *string
+	iface    interface{}
 }
 
 func TestBasicTypes(t *testing.T) {
 	str := "Hello"
 	b := &basics{
-		1,
+		new(basicNumerics),
 		"Hi",
 		[]string{"Hello", "World"},
 		&str,
 		"interfaceValue",
+	}
+
+	v := reflect.ValueOf(b.numerics).Elem()
+	for i := 0; i < v.NumField(); i++ {
+		if f := v.Field(i); f.Kind() == reflect.Ptr {
+			fv := reflect.New(f.Type().Elem())
+			f.Set(fv)
+		}
 	}
 
 	buf := &bytes.Buffer{}
