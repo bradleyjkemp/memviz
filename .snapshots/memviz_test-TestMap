@@ -1,11 +1,11 @@
 digraph structs {
   node [shape=Mrecord];
-  3 [label="<name> structMap |{<f0> id | \"leaf2\"} |{<f1> links | map[*memviz_test.structMap]bool\{\}}  "];
-  4:<5key0> -> 1:name;
-  4 [label="<name> structMap |{<f0> id | \"leaf\"} |{<f1> links | {{<5key0> *memviz_test.structMap| <5value0> true}}}  "];
+  3:<4key0> -> 1:name;
+  3 [label="<name> structMap |{<f0> id | \"leaf\"} |{<f1> links | {{<4key0> *memviz_test.structMap| <4value0> true}}}  "];
+  5 [label="<name> structMap |{<f0> id | \"leaf2\"} |{<f1> links | map[*memviz_test.structMap]bool\{\}}  "];
   2:<2key0> -> 3:name;
-  2:<2key1> -> 1:name;
-  2:<2key2> -> 4:name;
+  2:<2key1> -> 5:name;
+  2:<2key2> -> 1:name;
   2 [label="<name> map[*memviz_test.structMap]bool |{<2key0> *memviz_test.structMap| <2value0> true}|{<2key1> *memviz_test.structMap| <2value1> true}|{<2key2> *memviz_test.structMap| <2value2> true} "];
   1 [label="<name> structMap |{<f0> id | \"parent\"} |<f1> links "];
   1:f1 -> 2:name;
