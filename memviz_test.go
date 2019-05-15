@@ -11,6 +11,7 @@ import (
 	"github.com/bradleyjkemp/memviz"
 )
 
+//nolint:structcheck,megacheck
 type basicNumerics struct {
 	uint8      uint8
 	uint32     uint32
