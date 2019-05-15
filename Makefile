@@ -11,7 +11,7 @@ test: lint
 
 .PHONY: test-ci
 test-ci: lint
-	$(GOPATH)/bin/goveralls -v -service=travis-ci
+	go run github.com/mattn/goveralls -v -service=travis-ci
 
 .PHONY: lint
 lint:
