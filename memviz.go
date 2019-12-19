@@ -28,8 +28,13 @@ type mapper struct {
 	inlineableItemLimit int
 }
 
-// Map prints out a Graphviz digraph of the given datastructure to the given io.Writer
+// Map prints the given datastructure using the default config
 func Map(w io.Writer, is ...interface{}) {
+	defaultConfig().Map(w, is...)
+}
+
+// Map prints out a Graphviz digraph of the given datastructure to the given io.Writer
+func (c *Config) Map(w io.Writer, is ...interface{}) {
 	var iVals []reflect.Value
 	for _, i := range is {
 		iVal := reflect.ValueOf(i)
