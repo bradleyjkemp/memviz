@@ -3,11 +3,14 @@ package memviz
 import (
 	"fmt"
 	"reflect"
+	"strings"
 	"unsafe"
 )
 
-func (m *mapper) mapStruct(structVal reflect.Value) (nodeID, string) {
+func (m *mapper) mapStruct(structVal reflect.Value, depth uint32) (nodeID, string) {
 	uType := structVal.Type()
+	name := uType.Name()
+	pkgPath := uType.PkgPath()
 	id := m.getNodeID(structVal)
 	key := getNodeKey(structVal)
 	m.nodeSummaries[key] = escapeString(uType.String())
@@ -20,19 +23,39 @@ func (m *mapper) mapStruct(structVal reflect.Value) (nodeID, string) {
 			// TODO: when does this happen? Can we work around it?
 			continue
 		}
+		if !m.config.includePrivateFields && !field.CanSet() {
+			// ignore private field
+			continue
+		}
+		// Get the field tag value to check for ignore
+		f2 := uType.Field(index)
+		tag := f2.Tag.Get(kTagName)
+		tagElems := strings.Split(tag, ",")
+		if _, ok := strArrContains(tagElems, "-", true); ok {
+			// ignore element was requested
+			continue
+		}
+		// access exported and unexported fields
 		field = reflect.NewAt(field.Type(), unsafe.Pointer(field.UnsafeAddr())).Elem()
-		fieldID, summary := m.mapValue(field, id, true)
 
-		// if field was inlined (id == 0) then print summary, else just the name and a link to the actual
+		// map next level
+		fieldID, summary := m.mapValue(field, id, true, depth+1)
+
+		// if field was inlined (id == 0) then print summary, else just the name and a link to the actual node
 		if fieldID == 0 {
-			fields += fmt.Sprintf("|{<f%d> %s | %s} ", index, uType.Field(index).Name, summary)
-		} else {
-			fields += fmt.Sprintf("|<f%d> %s", index, uType.Field(index).Name)
+			fields += fmt.Sprintf("|{<f%d> %s | %s} ", index, f2.Name, summary)
+		} else if fieldID > 0 {
+			fields += fmt.Sprintf("|<f%d> %s", index, f2.Name)
 			links = append(links, fmt.Sprintf("  %d:f%d -> %d:name;\n", id, index, fieldID))
+		} else {
+			// negative value means max depth was reached so don't link over to next node
 		}
 	}
 
-	node := fmt.Sprintf("  %d [label=\"<name> %s %s \"];\n", id, structVal.Type().Name(), fields)
+	if !m.config.abbreviatedTypeNames && pkgPath != "" {
+		name = pkgPath + "." + name
+	}
+	node := fmt.Sprintf("  %d [label=\"<name> %s %s \"];\n", id, name, fields)
 
 	fmt.Fprint(m.writer, node)
 	for _, link := range links {
@@ -42,14 +65,20 @@ func (m *mapper) mapStruct(structVal reflect.Value) (nodeID, string) {
 	return id, m.nodeSummaries[key]
 }
 
-func (m *mapper) mapSlice(sliceVal reflect.Value, parentID nodeID, inlineable bool) (nodeID, string) {
+func (m *mapper) mapSlice(sliceVal reflect.Value, parentID nodeID, inlineable bool, depth uint32) (nodeID, string) {
 	sliceID := m.getNodeID(sliceVal)
 	key := getNodeKey(sliceVal)
-	sliceType := escapeString(sliceVal.Type().String())
+	st := sliceVal.Type()
+	pkgPath := st.PkgPath()
+	sliceType := escapeString(st.String())
 	m.nodeSummaries[key] = sliceType
 
 	if sliceVal.Len() == 0 {
-		m.nodeSummaries[key] = sliceType + "\\{\\}"
+		emptySlice := sliceType + "\\{\\}"
+		if !m.config.abbreviatedTypeNames && pkgPath != "" {
+			emptySlice = pkgPath + "." + emptySlice
+		}
+		m.nodeSummaries[key] = emptySlice
 
 		if inlineable {
 			return 0, m.nodeSummaries[key]
@@ -62,7 +91,7 @@ func (m *mapper) mapSlice(sliceVal reflect.Value, parentID nodeID, inlineable bo
 	// if inlined then these come from the parent
 	// if not inlined then these come from this node
 	sourceID := sliceID
-	if inlineable && sliceVal.Len() <= m.inlineableItemLimit {
+	if inlineable && (m.config.maxInliningSize == 0 || sliceVal.Len() <= int(m.config.maxInliningSize)) {
 		sourceID = parentID
 	}
 
@@ -70,7 +99,7 @@ func (m *mapper) mapSlice(sliceVal reflect.Value, parentID nodeID, inlineable bo
 	var elements string
 	var links []string
 	for index := 0; index < length; index++ {
-		indexID, summary := m.mapValue(sliceVal.Index(index), sliceID, true)
+		indexID, summary := m.mapValue(sliceVal.Index(index), sliceID, true, depth+1)
 		if indexID != 0 {
 			// need pointer to value
 			elements += fmt.Sprintf("|<%dindex%d> %d", sliceID, index, index)
@@ -85,7 +114,7 @@ func (m *mapper) mapSlice(sliceVal reflect.Value, parentID nodeID, inlineable bo
 		fmt.Fprint(m.writer, link)
 	}
 
-	if inlineable && length <= m.inlineableItemLimit {
+	if inlineable && (m.config.maxInliningSize == 0 || length <= int(m.config.maxInliningSize)) {
 		// inline slice
 		// remove stored summary so this gets regenerated every time
 		// we need to do this so that we get a chance to print out the new links
@@ -96,20 +125,30 @@ func (m *mapper) mapSlice(sliceVal reflect.Value, parentID nodeID, inlineable bo
 	}
 
 	// else create a new node
-	node := fmt.Sprintf("  %d [label=\"<name> %s %s \"];\n", sliceID, sliceType, elements)
+	name := sliceType
+	if !m.config.abbreviatedTypeNames && pkgPath != "" {
+		name = pkgPath + "." + name
+	}
+	node := fmt.Sprintf("  %d [label=\"<name> %s %s \"];\n", sliceID, name, elements)
 	fmt.Fprint(m.writer, node)
 
 	return sliceID, m.nodeSummaries[key]
 }
 
-func (m *mapper) mapMap(mapVal reflect.Value, parentID nodeID, inlineable bool) (nodeID, string) {
+func (m *mapper) mapMap(mapVal reflect.Value, parentID nodeID, inlineable bool, depth uint32) (nodeID, string) {
 	// create a string type while escaping graphviz special characters
-	mapType := escapeString(mapVal.Type().String())
+	mt := mapVal.Type()
+	mapType := escapeString(mt.String())
+	pkgPath := mt.PkgPath()
 
 	nodeKey := getNodeKey(mapVal)
 
 	if mapVal.Len() == 0 {
-		m.nodeSummaries[nodeKey] = mapType + "\\{\\}"
+		emptyMap := mapType + "\\{\\}"
+		if !m.config.abbreviatedTypeNames && pkgPath != "" {
+			emptyMap = pkgPath + "." + emptyMap
+		}
+		m.nodeSummaries[nodeKey] = emptyMap
 
 		if inlineable {
 			return 0, m.nodeSummaries[nodeKey]
@@ -120,7 +159,7 @@ func (m *mapper) mapMap(mapVal reflect.Value, parentID nodeID, inlineable bool) 
 
 	mapID := m.getNodeID(mapVal)
 	var id nodeID
-	if inlineable && mapVal.Len() <= m.inlineableItemLimit {
+	if inlineable && (m.config.maxInliningSize == 0 || mapVal.Len() <= int(m.config.maxInliningSize)) {
 		m.nodeSummaries[nodeKey] = mapType
 		id = parentID
 	} else {
@@ -130,8 +169,8 @@ func (m *mapper) mapMap(mapVal reflect.Value, parentID nodeID, inlineable bool) 
 	var links []string
 	var fields string
 	for index, mapKey := range mapVal.MapKeys() {
-		keyID, keySummary := m.mapValue(mapKey, id, true)
-		valueID, valueSummary := m.mapValue(mapVal.MapIndex(mapKey), id, true)
+		keyID, keySummary := m.mapValue(mapKey, id, true, depth+1)
+		valueID, valueSummary := m.mapValue(mapVal.MapIndex(mapKey), id, true, depth+1)
 		fields += fmt.Sprintf("|{<%dkey%d> %s| <%dvalue%d> %s}", mapID, index, keySummary, mapID, index, valueSummary)
 		if keyID != 0 {
 			links = append(links, fmt.Sprintf("  %d:<%dkey%d> -> %d:name;\n", id, mapID, index, keyID))
@@ -145,7 +184,7 @@ func (m *mapper) mapMap(mapVal reflect.Value, parentID nodeID, inlineable bool) 
 		fmt.Fprint(m.writer, link)
 	}
 
-	if inlineable && mapVal.Len() <= m.inlineableItemLimit {
+	if inlineable && (m.config.maxInliningSize == 0 || mapVal.Len() <= int(m.config.maxInliningSize)) {
 		// inline map
 		// remove stored summary so this gets regenerated every time
 		// we need to do this so that we get a chance to print out the new links
@@ -156,7 +195,11 @@ func (m *mapper) mapMap(mapVal reflect.Value, parentID nodeID, inlineable bool) 
 	}
 
 	// else create a new node
-	node := fmt.Sprintf("  %d [label=\"<name> %s %s \"];\n", id, mapType, fields)
+	name := mapType
+	if !m.config.abbreviatedTypeNames && pkgPath != "" {
+		name = pkgPath + "." + name
+	}
+	node := fmt.Sprintf("  %d [label=\"<name> %s %s \"];\n", id, name, fields)
 	fmt.Fprint(m.writer, node)
 
 	return id, m.nodeSummaries[nodeKey]
