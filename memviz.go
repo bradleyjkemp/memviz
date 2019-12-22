@@ -34,7 +34,7 @@ func (c *Config) WriteToPngFile(filename string, is ...interface{}) {
 	}
 	b := &bytes.Buffer{}
 	c.Map(b, is...)
-	writeDotStringToPng(filename, b.String())
+	writeDotStringToPng(fn, b.String())
 }
 
 // Map prints out a Graphviz digraph of the given datastructure to the given io.Writer
