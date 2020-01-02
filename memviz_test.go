@@ -288,9 +288,7 @@ func TestPointerAliasing(t *testing.T) {
 }
 
 func TestConfig_MapIgnoreOneField(t *testing.T) {
-	c := memviz.New(func(config *memviz.Config) {
-		config.SetMaxInliningSize(memviz.InlineSizeLow)
-	})
+	c := memviz.New(memviz.MaxItemsToInline(2))
 	str := "Hello"
 	basics := &basics2{
 		new(basicNumerics),
@@ -310,14 +308,11 @@ func TestConfig_MapIgnoreOneField(t *testing.T) {
 	b := &bytes.Buffer{}
 	c.Map(b, &basics)
 	fmt.Println(b.String())
-	c.WriteToPngFile("testconfig_map_ignore_one_field.png", &basics)
 	cupaloy.SnapshotT(t, b.Bytes())
 }
 
 func TestConfig_MapMaxInlineMedium(t *testing.T) {
-	c := memviz.New(func(config *memviz.Config) {
-		config.SetMaxInliningSize(memviz.InlineSizeMed)
-	})
+	c := memviz.New(memviz.MaxItemsToInline(5))
 	str := "Hello"
 	basics := &basics{
 		new(basicNumerics),
@@ -337,14 +332,11 @@ func TestConfig_MapMaxInlineMedium(t *testing.T) {
 	b := &bytes.Buffer{}
 	c.Map(b, &basics)
 	fmt.Println(b.String())
-	c.WriteToPngFile("testconfig_map_maxinline_medium.png", &basics)
 	cupaloy.SnapshotT(t, b.Bytes())
 }
 
 func TestConfig_MapMaxDepth1(t *testing.T) {
-	c := memviz.New(func(config *memviz.Config) {
-		config.SetMaxDepth(1)
-	})
+	c := memviz.New(memviz.MaxDepth(1))
 	str := "Hello"
 	basics := &basics{
 		new(basicNumerics),
@@ -364,14 +356,11 @@ func TestConfig_MapMaxDepth1(t *testing.T) {
 	b := &bytes.Buffer{}
 	c.Map(b, &basics)
 	fmt.Println(b.String())
-	c.WriteToPngFile("testconfig_map_max_depth_1.png", &basics)
 	cupaloy.SnapshotT(t, b.Bytes())
 }
 
 func TestConfig_MapMaxDepth2(t *testing.T) {
-	c := memviz.New(func(config *memviz.Config) {
-		config.SetMaxDepth(2)
-	})
+	c := memviz.New(memviz.MaxDepth(2))
 	str := "Hello"
 	basics := &basics{
 		new(basicNumerics),
@@ -391,14 +380,11 @@ func TestConfig_MapMaxDepth2(t *testing.T) {
 	b := &bytes.Buffer{}
 	c.Map(b, &basics)
 	fmt.Println(b.String())
-	c.WriteToPngFile("testconfig_map_max_depth_2.png", &basics)
 	cupaloy.SnapshotT(t, b.Bytes())
 }
 
 func TestConfig_MapMaxDepth3(t *testing.T) {
-	c := memviz.New(func(config *memviz.Config) {
-		config.SetMaxDepth(3)
-	})
+	c := memviz.New(memviz.MaxDepth(3))
 	str := "Hello"
 	basics := &basics{
 		new(basicNumerics),
@@ -418,14 +404,11 @@ func TestConfig_MapMaxDepth3(t *testing.T) {
 	b := &bytes.Buffer{}
 	c.Map(b, &basics)
 	fmt.Println(b.String())
-	c.WriteToPngFile("testconfig_map_max_depth_3.png", &basics)
 	cupaloy.SnapshotT(t, b.Bytes())
 }
 
 func TestConfig_MapFullNames(t *testing.T) {
-	c := memviz.New(func(config *memviz.Config) {
-		config.SetAbbreviatedTypeNames(false)
-	})
+	c := memviz.New(memviz.UseAbbreviatedTypeNames(false))
 	str := "Hello"
 	basics := &basics{
 		new(basicNumerics),
@@ -445,6 +428,5 @@ func TestConfig_MapFullNames(t *testing.T) {
 	b := &bytes.Buffer{}
 	c.Map(b, &basics)
 	fmt.Println(b.String())
-	c.WriteToPngFile("testconfig_map_full_names.png", &basics)
 	cupaloy.SnapshotT(t, b.Bytes())
 }

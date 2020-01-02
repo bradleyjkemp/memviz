@@ -1,7 +1,6 @@
 package memviz // import "github.com/bradleyjkemp/memviz"
 
 import (
-	"bytes"
 	"fmt"
 	"io"
 	"reflect"
@@ -20,21 +19,6 @@ import (
 // Map prints the given datastructure using the default config
 func Map(w io.Writer, is ...interface{}) {
 	defaultConfig().Map(w, is...)
-}
-
-func WriteToPngFile(filename string, is ...interface{}) {
-	defaultConfig().WriteToPngFile(filename, is...)
-}
-
-// WriteToPngFile print a png file with the provided name
-func (c *Config) WriteToPngFile(filename string, is ...interface{}) {
-	fn := filename
-	if !strings.HasSuffix(fn, ".png") {
-		fn += ".png"
-	}
-	b := &bytes.Buffer{}
-	c.Map(b, is...)
-	writeDotStringToPng(fn, b.String())
 }
 
 // Map prints out a Graphviz digraph of the given datastructure to the given io.Writer

@@ -46,3 +46,12 @@ How would you rather debug a data structure?
 Simply pass in your data structure like so: ```memviz.Map(out, &data)``` and then pipe the output into graphviz.
 
 For more complete examples see the tests in [memviz_test.go](https://github.com/bradleyjkemp/memviz/blob/master/memviz_test.go).
+
+## Rendering with graphviz
+
+Using the `memviz` output you can render the output directly as a png file (check out the implementation of at [DataViz](https://github.com/Arafatk/DataViz/blob/master/utils/utils.go))
+```go
+b := &bytes.Buffer{}
+memviz.Map(foo, b)
+dataviz_utils.WriteDotStringToPng(b.String(), "foo.png")
+```

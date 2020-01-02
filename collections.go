@@ -91,7 +91,7 @@ func (m *mapper) mapSlice(sliceVal reflect.Value, parentID nodeID, inlineable bo
 	// if inlined then these come from the parent
 	// if not inlined then these come from this node
 	sourceID := sliceID
-	if inlineable && (m.config.maxInliningSize == 0 || sliceVal.Len() <= int(m.config.maxInliningSize)) {
+	if inlineable && (m.config.maxItemsToInline == 0 || sliceVal.Len() <= int(m.config.maxItemsToInline)) {
 		sourceID = parentID
 	}
 
@@ -114,7 +114,7 @@ func (m *mapper) mapSlice(sliceVal reflect.Value, parentID nodeID, inlineable bo
 		fmt.Fprint(m.writer, link)
 	}
 
-	if inlineable && (m.config.maxInliningSize == 0 || length <= int(m.config.maxInliningSize)) {
+	if inlineable && (m.config.maxItemsToInline == 0 || length <= int(m.config.maxItemsToInline)) {
 		// inline slice
 		// remove stored summary so this gets regenerated every time
 		// we need to do this so that we get a chance to print out the new links
@@ -159,7 +159,7 @@ func (m *mapper) mapMap(mapVal reflect.Value, parentID nodeID, inlineable bool, 
 
 	mapID := m.getNodeID(mapVal)
 	var id nodeID
-	if inlineable && (m.config.maxInliningSize == 0 || mapVal.Len() <= int(m.config.maxInliningSize)) {
+	if inlineable && (m.config.maxItemsToInline == 0 || mapVal.Len() <= int(m.config.maxItemsToInline)) {
 		m.nodeSummaries[nodeKey] = mapType
 		id = parentID
 	} else {
@@ -184,7 +184,7 @@ func (m *mapper) mapMap(mapVal reflect.Value, parentID nodeID, inlineable bool, 
 		fmt.Fprint(m.writer, link)
 	}
 
-	if inlineable && (m.config.maxInliningSize == 0 || mapVal.Len() <= int(m.config.maxInliningSize)) {
+	if inlineable && (m.config.maxItemsToInline == 0 || mapVal.Len() <= int(m.config.maxItemsToInline)) {
 		// inline map
 		// remove stored summary so this gets regenerated every time
 		// we need to do this so that we get a chance to print out the new links
