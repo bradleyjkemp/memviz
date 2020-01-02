@@ -1,34 +1,8 @@
 package memviz
 
 import (
-	"fmt"
-	"io/ioutil"
-	"os"
-	"os/exec"
 	"strings"
 )
-
-// writeDotStringToPng takes a content of a dot file in a string and makes a graph using Graphviz
-// to ouput an image
-//
-// sourced from https://github.com/Arafatk/DataViz/blob/master/utils/utils.go
-func writeDotStringToPng(fileName string, dotFileString string) (ok bool) {
-	byteString := []byte(dotFileString) // Converting the string to byte slice to write to a file
-	tmpFile, _ := ioutil.TempFile("", "TemporaryDotFile")
-	tmpFile.Write(byteString)            // Writing the string to a temporary file
-	dotPath, err := exec.LookPath("dot") // Looking for dot command
-	if err != nil {
-		fmt.Printf("Error: Running the Visualizer command. Please install Graphviz. %s", err)
-		return false
-	}
-	dotCommandResult, err := exec.Command(dotPath, "-Tpng", tmpFile.Name()).Output() // Running the command
-	if err != nil {
-		fmt.Printf("Error: Running the Visualizer command. Please install Graphviz. %s", err)
-		return false
-	}
-	ioutil.WriteFile(fileName, dotCommandResult, os.FileMode(int(0777)))
-	return true
-}
 
 // Finds a string in a string array
 //
