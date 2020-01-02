@@ -1,0 +1,11 @@
+digraph structs {
+  node [shape=Mrecord];
+  2 [label="<name> \"Hello\""];
+  3 [label="<name> \"interfaceValue\""];
+  1 [label="<name> basics |{<f1> string | \"Hi\"} |<f3> ptr|<f4> iface "];
+  1:f3 -> 2:name;
+  1:f4 -> 3:name;
+  4 [label="<name> *memviz_test.basics"];
+  4:name -> 1:name;
+}
+
